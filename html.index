@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cadastro Institucional</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #d1d5db;
+      --accent: #1f3a5f;
+      --accent-hover: #162c48;
+      --accent-soft: #eef2f7;
+      --error: #b42318;
+      --radius: 10px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-size: 15px; line-height: 1.5;
+    }
+    .container { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+
+    .topo, .secao, .obrigado {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px; margin-bottom: 16px;
+    }
+    .topo { border-top: 6px solid var(--accent); }
+    .topo h1 { font-size: 1.4rem; font-weight: 600; margin: 0 0 8px; line-height: 1.3; }
+    .topo p { margin: 0; color: var(--muted); font-size: .9rem; }
+    .obrig { color: var(--error); }
+
+    .secao h2 {
+      font-size: 1.05rem; font-weight: 600; color: var(--accent);
+      margin: 0 0 16px; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb;
+    }
+    .secao h2 small { display: block; font-size: .78rem; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px; }
+    .secao h3 { font-size: .95rem; font-weight: 600; margin: 24px 0 12px; color: var(--text); }
+
+    .aviso {
+      background: var(--accent-soft); border-left: 4px solid var(--accent);
+      border-radius: 6px; padding: 12px 14px; font-size: .9rem; margin-bottom: 18px;
+    }
+
+    .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px 14px; }
+    .c6 { grid-column: span 6; } .c4 { grid-column: span 4; } .c3 { grid-column: span 3; } .c2 { grid-column: span 2; }
+
+    .rotulo { display: block; font-weight: 500; font-size: .9rem; margin-bottom: 6px; }
+    .ajuda { display: block; color: var(--muted); font-size: .8rem; margin-top: 4px; }
+    .erro-campo { display: block; color: var(--error); font-size: .8rem; margin-top: 4px; }
+    .erro-campo:empty { display: none; }
+
+    input[type="text"], input[type="email"], input[type="tel"], select {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px;
+      font: inherit; color: inherit; background: #fff; transition: border-color .15s;
+    }
+    select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, #6b7280 50%), linear-gradient(135deg, #6b7280 50%, transparent 50%); background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 34px; }
+    input:focus, select:focus, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+
+    /* Telefone com bandeira */
+    .tel { display: flex; gap: 8px; position: relative; }
+    .tel input { flex: 1; min-width: 0; }
+    .pais-btn {
+      display: flex; align-items: center; gap: 6px; flex: 0 0 auto;
+      padding: 0 10px; border: 1px solid var(--border); border-radius: 6px;
+      background: #fff; font: inherit; color: inherit; cursor: pointer; min-width: 104px;
+    }
+    .pais-btn:hover { border-color: var(--accent); }
+    .pais-btn::after { content: ""; border: 4px solid transparent; border-top-color: var(--muted); margin: 4px 0 0 auto; }
+    .bandeira { width: 22px; height: 16px; object-fit: cover; border-radius: 2px; box-shadow: 0 0 0 1px rgba(0,0,0,.08); flex: 0 0 auto; }
+    .pais-pop {
+      position: absolute; top: calc(100% + 4px); left: 0; z-index: 20;
+      width: 320px; max-width: calc(100vw - 48px);
+      background: #fff; border: 1px solid var(--border); border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.12); padding: 8px;
+    }
+    .pais-pop input { margin-bottom: 6px; }
+    .pais-pop ul { list-style: none; margin: 0; padding: 0; max-height: 240px; overflow-y: auto; }
+    .pais-pop li { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 5px; cursor: pointer; font-size: .9rem; }
+    .pais-pop li .ddi { color: var(--muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+    .pais-pop li[aria-selected="true"], .pais-pop li:hover { background: var(--accent-soft); }
+    .pais-pop .nada { padding: 8px; color: var(--muted); font-size: .88rem; }
+
+    /* Data: digitada ou pelo calendário */
+    .data { display: flex; gap: 8px; position: relative; }
+    .data input[type="text"] { flex: 1; min-width: 0; }
+    .data input[type="date"] { position: absolute; inset: auto 0 0 auto; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+    .cal-btn {
+      flex: 0 0 44px; border: 1px solid var(--border); border-radius: 6px; background: #fff;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--accent);
+    }
+    .cal-btn:hover { border-color: var(--accent); background: var(--accent-soft); }
+
+    /* Anexos */
+    .anexo { border: 1px dashed var(--border); border-radius: 8px; padding: 14px; background: #fafafa; }
+    .anexo .rotulo { display: flex; gap: 8px; }
+    .anexo .num { color: var(--accent); font-weight: 600; }
+    .anexo input[type="file"] { width: 100%; font: inherit; font-size: .88rem; }
+    .anexo input[type="file"]::file-selector-button {
+      font: inherit; font-size: .85rem; font-weight: 500; padding: 8px 14px; margin-right: 12px;
+      border: 1px solid var(--accent); border-radius: 6px; background: #fff; color: var(--accent); cursor: pointer;
+    }
+
+    .validado input:invalid, .validado select:invalid, .validado .invalido { border-color: var(--error); }
+    .validado .anexo:has(input:invalid) { border-color: var(--error); }
+
+    .acoes { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 8px; }
+    .btn { background: var(--accent); color: #fff; border: 0; border-radius: 6px; padding: 12px 32px; font: inherit; font-weight: 600; cursor: pointer; }
+    .btn:hover { background: var(--accent-hover); }
+    .btn:disabled { opacity: .6; cursor: wait; }
+    .status { font-size: .9rem; color: var(--muted); }
+    .status.erro { color: var(--error); }
+
+    .oculto { display: none !important; }
+
+    .obrigado { text-align: center; padding: 48px 24px; }
+    .obrigado .icone {
+      width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 16px;
+      background: var(--accent-soft); color: var(--accent);
+      display: flex; align-items: center; justify-content: center; font-size: 28px;
+    }
+    .obrigado p { font-size: 1.05rem; max-width: 480px; margin: 0 auto; }
+
+    @media (max-width: 600px) {
+      .container { padding: 16px 12px 48px; }
+      .topo, .secao { padding: 18px; }
+      .grid > * { grid-column: span 6 !important; }
+      .btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <form id="form" novalidate>
+    <header class="topo">
+      <h1>Cadastro Institucional</h1>
+      <p><span class="obrig">*</span> Indica campo obrigatório</p>
+    </header>
+
+    <!-- SEÇÃO 1 -->
+    <section class="secao">
+      <h2><small>Seção 1</small>Dados Institucionais</h2>
+      <div class="grid">
+        <div class="c4">
+          <label class="rotulo" for="instNome">Instituição <span class="obrig">*</span></label>
+          <input type="text" id="instNome" name="instNome" required autocomplete="organization">
+        </div>
+        <div class="c2">
+          <label class="rotulo" for="instSigla">Sigla <span class="obrig">*</span></label>
+          <input type="text" id="instSigla" name="instSigla" required maxlength="20">
+        </div>
+        <div class="c3">
+          <label class="rotulo" for="instCnpj">CNPJ <span class="obrig">*</span></label>
+          <input type="text" id="instCnpj" name="instCnpj" data-mascara="cnpj" data-valida="cnpj" inputmode="numeric" required placeholder="00.000.000/0000-00">
+        </div>
+        <div class="c3">
+          <label class="rotulo" for="instEmail">E-mail institucional <span class="obrig">*</span></label>
+          <input type="email" id="instEmail" name="instEmail" data-valida="email" required placeholder="email@instituicao.org.br">
+        </div>
+        <div class="c6" data-telefone="instTelefone" data-rotulo="Telefone institucional"></div>
+      </div>
+      <h3>Endereço da instituição</h3>
+      <div class="grid" data-endereco="inst"></div>
+    </section>
+
+    <!-- SEÇÃO 2 -->
+    <section class="secao">
+      <h2><small>Seção 2</small>Representante Legal</h2>
+      <div class="grid">
+        <div class="c6">
+          <label class="rotulo" for="repNome">Nome completo <span class="obrig">*</span></label>
+          <input type="text" id="repNome" name="repNome" required autocomplete="name">
+        </div>
+        <div class="c2">
+          <label class="rotulo" for="repCpf">CPF <span class="obrig">*</span></label>
+          <input type="text" id="repCpf" name="repCpf" data-mascara="cpf" data-valida="cpf" inputmode="numeric" required placeholder="000.000.000-00">
+        </div>
+        <div class="c2">
+          <label class="rotulo" for="repRg">RG <span class="obrig">*</span></label>
+          <input type="text" id="repRg" name="repRg" required>
+        </div>
+        <div class="c2">
+          <label class="rotulo" for="repProfissao">Profissão <span class="obrig">*</span></label>
+          <input type="text" id="repProfissao" name="repProfissao" required>
+        </div>
+        <div class="c3">
+          <label class="rotulo" for="repEmail">E-mail <span class="obrig">*</span></label>
+          <input type="email" id="repEmail" name="repEmail" data-valida="email" required placeholder="email@email.com">
+        </div>
+        <div class="c3" data-telefone="repTelefone" data-rotulo="Telefone"></div>
+      </div>
+
+      <h3>Endereço do representante</h3>
+      <div class="grid" data-endereco="rep"></div>
+
+      <h3>Vigência do Presidente</h3>
+      <div class="grid">
+        <div class="c3" data-data="repVigenciaDe" data-rotulo="De"></div>
+        <div class="c3" data-data="repVigenciaAte" data-rotulo="Até"></div>
+      </div>
+    </section>
+
+    <!-- SEÇÃO 3 -->
+    <section class="secao">
+      <h2><small>Seção 3</small>Contador</h2>
+      <div class="grid">
+        <div class="c6">
+          <label class="rotulo" for="contNome">Nome completo <span class="obrig">*</span></label>
+          <input type="text" id="contNome" name="contNome" required>
+        </div>
+        <div class="c2">
+          <label class="rotulo" for="contCpf">CPF <span class="obrig">*</span></label>
+          <input type="text" id="contCpf" name="contCpf" data-mascara="cpf" data-valida="cpf" inputmode="numeric" required placeholder="000.000.000-00">
+        </div>
+        <div class="c2">
+          <label class="rotulo" for="contRg">RG <span class="obrig">*</span></label>
+          <input type="text" id="contRg" name="contRg" required>
+        </div>
+        <div class="c2">
+          <label class="rotulo" for="contCrc">CRC <span class="obrig">*</span></label>
+          <input type="text" id="contCrc" name="contCrc" required placeholder="Ex.: PR-012345/O-6">
+        </div>
+        <div class="c6">
+          <label class="rotulo" for="contProfissao">Profissão <span class="obrig">*</span></label>
+          <input type="text" id="contProfissao" name="contProfissao" required value="Contador(a)">
+        </div>
+        <div class="c3">
+          <label class="rotulo" for="contEmail">E-mail <span class="obrig">*</span></label>
+          <input type="email" id="contEmail" name="contEmail" data-valida="email" required placeholder="email@email.com">
+        </div>
+        <div class="c3" data-telefone="contTelefone" data-rotulo="Telefone"></div>
+      </div>
+      <h3>Endereço do contador</h3>
+      <div class="grid" data-endereco="cont"></div>
+    </section>
+
+    <!-- SEÇÃO 4 -->
+    <section class="secao">
+      <h2><small>Seção 4</small>Anexar Documentos</h2>
+      <p class="ajuda" style="margin:-6px 0 16px">Formatos aceitos: PDF, JPG, PNG, DOC ou DOCX — até 10 MB por arquivo e 30 MB no total.</p>
+      <div class="grid" id="listaDocs"></div>
+    </section>
+
+    <div class="acoes">
+      <button type="submit" class="btn" id="btnEnviar">Enviar</button>
+      <span class="status" id="status" role="status" aria-live="polite"></span>
+    </div>
+  </form>
+
+  <div class="obrigado oculto" id="obrigado" role="status" aria-live="polite">
+    <div class="icone">✓</div>
+    <p>Cadastro recebido com sucesso! Obrigado por enviar os dados e documentos da instituição.</p>
+  </div>
+
+</div>
+
+<script>
+  /* =========================================================
+   * CONFIGURAÇÃO — cole aqui o link da Web App do Apps Script
+   * (Implantar → Gerenciar implantações → URL que termina em /exec)
+   * ========================================================= */
+  const URL_SCRIPT = 'https://script.google.com/macros/s/AKfycbxfPxUf8XUGoZlFH7di_BNLZr0h8eV70_vCZ7I9QaBcfStR18CYpSr_HRYVfQP9qsouRg/exec';
+
+  const MAX_MB = 10, MAX_TOTAL_MB = 30;
+  const UFS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
+
+  const DOCUMENTOS = [
+    ['docEstatuto', 'Estatuto Social atualizado'],
+    ['docAtaEleicao', 'Ata de eleição e posse da diretoria atual'],
+    ['docRelacaoDiretoria', 'Relação dos membros da diretoria atual'],
+    ['docEndInstituicao', 'Comprovante de endereço da instituição'],
+    ['docRgPresidente', 'Documento de identificação (RG) do presidente'],
+    ['docEndPresidente', 'Comprovante de endereço do presidente'],
+    ['docCrcContador', 'Comprovante de registro no CRC do contador responsável'],
+    ['docEndContador', 'Comprovante de endereço do contador'],
+    ['docRgContador', 'Documento de identificação (RG) do contador']
+  ];
+
+  // iso|nome|DDI — Brasil fica no topo
+  const PAISES = ('br|Brasil|55;af|Afeganistão|93;za|África do Sul|27;al|Albânia|355;de|Alemanha|49;ad|Andorra|376;ao|Angola|244;' +
+    'ag|Antígua e Barbuda|1;sa|Arábia Saudita|966;dz|Argélia|213;ar|Argentina|54;am|Armênia|374;aw|Aruba|297;au|Austrália|61;' +
+    'at|Áustria|43;az|Azerbaijão|994;bs|Bahamas|1;bh|Bahrein|973;bd|Bangladesh|880;bb|Barbados|1;be|Bélgica|32;bz|Belize|501;' +
+    'bj|Benin|229;by|Bielorrússia|375;bo|Bolívia|591;ba|Bósnia e Herzegovina|387;bw|Botsuana|267;bn|Brunei|673;bg|Bulgária|359;' +
+    'bf|Burkina Faso|226;bi|Burundi|257;bt|Butão|975;cv|Cabo Verde|238;cm|Camarões|237;kh|Camboja|855;ca|Canadá|1;qa|Catar|974;' +
+    'kz|Cazaquistão|7;td|Chade|235;cl|Chile|56;cn|China|86;cy|Chipre|357;co|Colômbia|57;km|Comores|269;cg|Congo|242;' +
+    'cd|Congo (Rep. Dem.)|243;kp|Coreia do Norte|850;kr|Coreia do Sul|82;ci|Costa do Marfim|225;cr|Costa Rica|506;hr|Croácia|385;' +
+    'cu|Cuba|53;cw|Curaçao|599;dk|Dinamarca|45;dj|Djibuti|253;dm|Dominica|1;eg|Egito|20;sv|El Salvador|503;' +
+    'ae|Emirados Árabes Unidos|971;ec|Equador|593;er|Eritreia|291;sk|Eslováquia|421;si|Eslovênia|386;es|Espanha|34;' +
+    'sz|Essuatíni|268;us|Estados Unidos|1;ee|Estônia|372;et|Etiópia|251;fj|Fiji|679;ph|Filipinas|63;fi|Finlândia|358;fr|França|33;' +
+    'ga|Gabão|241;gm|Gâmbia|220;gh|Gana|233;ge|Geórgia|995;gd|Granada|1;gr|Grécia|30;gt|Guatemala|502;gy|Guiana|592;' +
+    'gf|Guiana Francesa|594;gn|Guiné|224;gq|Guiné Equatorial|240;gw|Guiné-Bissau|245;ht|Haiti|509;nl|Holanda (Países Baixos)|31;' +
+    'hn|Honduras|504;hk|Hong Kong|852;hu|Hungria|36;ye|Iêmen|967;in|Índia|91;id|Indonésia|62;iq|Iraque|964;ir|Irã|98;' +
+    'ie|Irlanda|353;is|Islândia|354;il|Israel|972;it|Itália|39;jm|Jamaica|1;jp|Japão|81;jo|Jordânia|962;kw|Kuwait|965;la|Laos|856;' +
+    'ls|Lesoto|266;lv|Letônia|371;lb|Líbano|961;lr|Libéria|231;ly|Líbia|218;li|Liechtenstein|423;lt|Lituânia|370;' +
+    'lu|Luxemburgo|352;mo|Macau|853;mk|Macedônia do Norte|389;mg|Madagascar|261;my|Malásia|60;mw|Malaui|265;mv|Maldivas|960;' +
+    'ml|Mali|223;mt|Malta|356;ma|Marrocos|212;mu|Maurício|230;mr|Mauritânia|222;mx|México|52;mm|Mianmar|95;fm|Micronésia|691;' +
+    'mz|Moçambique|258;md|Moldávia|373;mc|Mônaco|377;mn|Mongólia|976;me|Montenegro|382;na|Namíbia|264;np|Nepal|977;' +
+    'ni|Nicarágua|505;ne|Níger|227;ng|Nigéria|234;no|Noruega|47;nz|Nova Zelândia|64;om|Omã|968;pw|Palau|680;ps|Palestina|970;' +
+    'pa|Panamá|507;pg|Papua-Nova Guiné|675;pk|Paquistão|92;py|Paraguai|595;pe|Peru|51;pf|Polinésia Francesa|689;pl|Polônia|48;' +
+    'pr|Porto Rico|1;pt|Portugal|351;ke|Quênia|254;kg|Quirguistão|996;gb|Reino Unido|44;cf|República Centro-Africana|236;' +
+    'cz|República Tcheca|420;do|República Dominicana|1;ro|Romênia|40;rw|Ruanda|250;ru|Rússia|7;ws|Samoa|685;sm|San Marino|378;' +
+    'lc|Santa Lúcia|1;kn|São Cristóvão e Névis|1;st|São Tomé e Príncipe|239;vc|São Vicente e Granadinas|1;sn|Senegal|221;' +
+    'sc|Seicheles|248;sl|Serra Leoa|232;rs|Sérvia|381;sg|Singapura|65;sy|Síria|963;so|Somália|252;lk|Sri Lanka|94;sd|Sudão|249;' +
+    'ss|Sudão do Sul|211;se|Suécia|46;ch|Suíça|41;sr|Suriname|597;th|Tailândia|66;tw|Taiwan|886;tj|Tajiquistão|992;' +
+    'tz|Tanzânia|255;tl|Timor-Leste|670;tg|Togo|228;to|Tonga|676;tt|Trinidad e Tobago|1;tn|Tunísia|216;tm|Turcomenistão|993;' +
+    'tr|Turquia|90;ua|Ucrânia|380;ug|Uganda|256;uy|Uruguai|598;uz|Uzbequistão|998;vu|Vanuatu|678;va|Vaticano|39;ve|Venezuela|58;' +
+    'vn|Vietnã|84;zm|Zâmbia|260;zw|Zimbábue|263')
+    .split(';').map(s => { const [iso, nome, ddi] = s.split('|'); return { iso, nome, ddi }; });
+
+  const form = document.getElementById('form');
+  const $ = id => document.getElementById(id);
+  const soDigitos = v => String(v || '').replace(/\D/g, '');
+  const semAcento = s => String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const urlBandeira = iso => 'https://flagcdn.com/w40/' + iso + '.png';
+  const obrig = ' <span class="obrig">*</span>';
+
+  /* =========================================================
+   * Máscaras e validadores
+   * ========================================================= */
+  const MASCARAS = {
+    cpf: v => soDigitos(v).slice(0, 11)
+      .replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2'),
+    cnpj: v => soDigitos(v).slice(0, 14)
+      .replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+      .replace(/\.(\d{3})(\d)/, '.$1/$2').replace(/(\d{4})(\d)/, '$1-$2'),
+    cep: v => soDigitos(v).slice(0, 8).replace(/(\d{5})(\d)/, '$1-$2'),
+    data: v => soDigitos(v).slice(0, 8).replace(/(\d{2})(\d)/, '$1/$2').replace(/(\d{2})\/(\d{2})(\d)/, '$1/$2/$3'),
+    foneBR: v => {
+      const d = soDigitos(v).slice(0, 11);
+      if (d.length <= 2) return d.length ? '(' + d : '';
+      const ddd = '(' + d.slice(0, 2) + ') ', n = d.slice(2);
+      if (n.length <= 4) return ddd + n;
+      return ddd + (n.length === 9 ? n.slice(0, 5) + '-' + n.slice(5) : n.slice(0, 4) + '-' + n.slice(4));
+    },
+    foneIntl: v => String(v || '').replace(/[^\d ]/g, '').replace(/\s{2,}/g, ' ').slice(0, 20)
+  };
+
+  function cpfValido(v) {
+    const d = soDigitos(v);
+    if (d.length !== 11 || /^(\d)\1+$/.test(d)) return false;
+    for (let t = 9; t < 11; t++) {
+      let s = 0;
+      for (let i = 0; i < t; i++) s += +d[i] * (t + 1 - i);
+      if (((s * 10) % 11) % 10 !== +d[t]) return false;
+    }
+    return true;
+  }
+  function cnpjValido(v) {
+    const d = soDigitos(v);
+    if (d.length !== 14 || /^(\d)\1+$/.test(d)) return false;
+    const calc = b => {
+      const p = b.length === 12 ? [5,4,3,2,9,8,7,6,5,4,3,2] : [6,5,4,3,2,9,8,7,6,5,4,3,2];
+      const r = b.split('').reduce((s, n, i) => s + +n * p[i], 0) % 11;
+      return r < 2 ? 0 : 11 - r;
+    };
+    const d1 = calc(d.slice(0, 12)), d2 = calc(d.slice(0, 12) + d1);
+    return d1 === +d[12] && d2 === +d[13];
+  }
+  const emailValido = v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
+  function dataBR(v) {
+    const m = String(v || '').match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (!m) return null;
+    const dt = new Date(+m[3], +m[2] - 1, +m[1]);
+    return (dt.getFullYear() === +m[3] && dt.getMonth() === +m[2] - 1 && dt.getDate() === +m[1]) ? dt : null;
+  }
+
+  function mensagemErro(el) {
+    const v = el.value.trim();
+    if (!v) return '';
+    switch (el.dataset.valida) {
+      case 'email': return emailValido(v) ? '' : 'Informe um e-mail válido. Ex.: email@email.com';
+      case 'cpf': return cpfValido(v) ? '' : 'CPF inválido. Confira os números.';
+      case 'cnpj': return cnpjValido(v) ? '' : 'CNPJ inválido. Confira os números.';
+      case 'cep': return soDigitos(v).length === 8 ? '' : 'O CEP deve ter 8 dígitos. Ex.: 00000-000';
+      case 'telefone': {
+        const d = soDigitos(v);
+        if (el.dataset.ddi === '55') {
+          if (d.length < 10 || d.length > 11) return 'Informe DDD e número. Ex.: (41) 99999-9999';
+          if (!/^[1-9][1-9]$/.test(d.slice(0, 2))) return 'DDD inválido.';
+          return '';
+        }
+        return (d.length >= 4 && d.length <= 14) ? '' : 'Informe o número com código de área (de 4 a 14 dígitos).';
+      }
+      case 'data': {
+        const dt = dataBR(v);
+        if (!dt) return 'Data inválida. Use dd/mm/aaaa.';
+        if (el.id === 'repVigenciaAte') {
+          const de = dataBR($('repVigenciaDe').value);
+          if (de && dt < de) return 'A data final não pode ser anterior à data inicial.';
+        }
+        return '';
+      }
+    }
+    return '';
+  }
+
+  function validarCampo(el) {
+    if (!el.dataset.valida) return;
+    const msg = mensagemErro(el);
+    el.setCustomValidity(msg);
+    const caixa = $('erro-' + el.id);
+    if (caixa) caixa.textContent = msg;
+  }
+
+  /* =========================================================
+   * Blocos repetidos: endereço, telefone, data, anexos
+   * ========================================================= */
+  function montarEndereco(box) {
+    const p = box.dataset.endereco;
+    box.innerHTML = `
+      <div class="c2">
+        <label class="rotulo" for="${p}Cep">CEP${obrig}</label>
+        <input type="text" id="${p}Cep" name="${p}Cep" data-mascara="cep" data-valida="cep" data-cep="${p}" inputmode="numeric" required placeholder="00000-000">
+        <span class="erro-campo" id="erro-${p}Cep"></span>
+      </div>
+      <div class="c4">
+        <label class="rotulo" for="${p}Rua">Rua${obrig}</label>
+        <input type="text" id="${p}Rua" name="${p}Rua" required>
+      </div>
+      <div class="c2">
+        <label class="rotulo" for="${p}Numero">Nº${obrig}</label>
+        <input type="text" id="${p}Numero" name="${p}Numero" required>
+      </div>
+      <div class="c4">
+        <label class="rotulo" for="${p}Complemento">Complemento</label>
+        <input type="text" id="${p}Complemento" name="${p}Complemento" placeholder="Opcional">
+      </div>
+      <div class="c2">
+        <label class="rotulo" for="${p}Bairro">Bairro${obrig}</label>
+        <input type="text" id="${p}Bairro" name="${p}Bairro" required>
+      </div>
+      <div class="c2">
+        <label class="rotulo" for="${p}Cidade">Cidade${obrig}</label>
+        <input type="text" id="${p}Cidade" name="${p}Cidade" required>
+      </div>
+      <div class="c2">
+        <label class="rotulo" for="${p}Uf">UF${obrig}</label>
+        <select id="${p}Uf" name="${p}Uf" required>
+          <option value="">Selecione</option>${UFS.map(u => `<option>${u}</option>`).join('')}
+        </select>
+      </div>`;
+    $(p + 'Cep').addEventListener('blur', () => buscarCep(p));
+  }
+
+  async function buscarCep(p) {
+    const cep = soDigitos($(p + 'Cep').value);
+    if (cep.length !== 8) return;
+    try {
+      const d = await (await fetch('https://viacep.com.br/ws/' + cep + '/json/')).json();
+      if (d.erro) return;
+      const pre = (campo, valor) => { const c = $(p + campo); if (c && !c.value && valor) c.value = valor; };
+      pre('Rua', d.logradouro); pre('Bairro', d.bairro); pre('Cidade', d.localidade); pre('Uf', d.uf);
+    } catch (e) { /* sem internet ou serviço fora: preenchimento manual */ }
+  }
+
+  function montarTelefone(box) {
+    const id = box.dataset.telefone;
+    box.innerHTML = `
+      <label class="rotulo" for="${id}">${box.dataset.rotulo}${obrig}</label>
+      <div class="tel">
+        <button type="button" class="pais-btn" id="${id}-pais" aria-haspopup="listbox" aria-expanded="false" aria-label="País do telefone">
+          <img class="bandeira" alt="" width="22" height="16"><span class="ddi-atual"></span>
+        </button>
+        <input type="tel" id="${id}" name="${id}" data-valida="telefone" required autocomplete="tel-national">
+        <div class="pais-pop oculto" id="${id}-pop">
+          <input type="text" placeholder="Buscar país ou código (ex.: 351, Portugal)" aria-label="Buscar país" autocomplete="off" spellcheck="false">
+          <ul role="listbox" aria-label="Países"></ul>
+        </div>
+      </div>
+      <span class="ajuda" id="ajuda-${id}"></span>
+      <span class="erro-campo" id="erro-${id}"></span>`;
+
+    const btn = $(id + '-pais'), pop = $(id + '-pop'), campo = $(id);
+    const busca = pop.querySelector('input'), lista = pop.querySelector('ul');
+    let filtrados = [], ativo = 0;
+
+    function escolher(pais, focar) {
+      btn.querySelector('img').src = urlBandeira(pais.iso);
+      btn.querySelector('img').alt = pais.nome;
+      btn.querySelector('.ddi-atual').textContent = '+' + pais.ddi;
+      btn.title = pais.nome;
+      campo.dataset.ddi = pais.ddi;
+      campo.dataset.pais = pais.nome;
+      const br = pais.ddi === '55';
+      campo.placeholder = br ? '(41) 99999-9999' : 'Número com código de área';
+      campo.inputMode = 'tel';
+      $('ajuda-' + id).textContent = br ? 'DDD + número. Ex.: (41) 3333-3333 ou (41) 99999-9999' : 'Número internacional, só dígitos (pode usar espaços).';
+      campo.value = br ? MASCARAS.foneBR(campo.value) : MASCARAS.foneIntl(campo.value);
+      validarCampo(campo);
+      fechar();
+      if (focar) campo.focus();
+    }
+    function desenhar() {
+      const q = semAcento(busca.value.trim()).replace(/^\+/, '');
+      filtrados = !q ? PAISES : PAISES.filter(p =>
+        semAcento(p.nome).includes(q) || p.ddi.startsWith(q.replace(/\D/g, '') || '§'));
+      ativo = 0;
+      lista.innerHTML = filtrados.length
+        ? filtrados.map((p, i) => `<li role="option" data-i="${i}" aria-selected="${i === 0}">
+            <img class="bandeira" src="${urlBandeira(p.iso)}" alt="" loading="lazy" width="22" height="16">
+            <span>${p.nome}</span><span class="ddi">+${p.ddi}</span></li>`).join('')
+        : '<li class="nada" role="presentation">Nenhum país encontrado</li>';
+    }
+    function marcar(i) {
+      const itens = lista.querySelectorAll('li[role=option]');
+      if (!itens.length) return;
+      ativo = Math.max(0, Math.min(i, itens.length - 1));
+      itens.forEach((li, k) => li.setAttribute('aria-selected', k === ativo));
+      itens[ativo].scrollIntoView({ block: 'nearest' });
+    }
+    function abrir() {
+      document.querySelectorAll('.pais-pop').forEach(p => p !== pop && p.classList.add('oculto'));
+      pop.classList.remove('oculto');
+      btn.setAttribute('aria-expanded', 'true');
+      busca.value = '';
+      desenhar();
+      busca.focus();
+    }
+    function fechar() {
+      pop.classList.add('oculto');
+      btn.setAttribute('aria-expanded', 'false');
+    }
+
+    btn.addEventListener('click', () => pop.classList.contains('oculto') ? abrir() : fechar());
+    busca.addEventListener('input', desenhar);
+    busca.addEventListener('keydown', e => {
+      if (e.key === 'ArrowDown') { e.preventDefault(); marcar(ativo + 1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); marcar(ativo - 1); }
+      else if (e.key === 'Enter') { e.preventDefault(); if (filtrados[ativo]) escolher(filtrados[ativo], true); }
+      else if (e.key === 'Escape') { fechar(); btn.focus(); }
+    });
+    lista.addEventListener('click', e => {
+      const li = e.target.closest('li[role=option]');
+      if (li) escolher(filtrados[+li.dataset.i], true);
+    });
+    document.addEventListener('click', e => { if (!box.contains(e.target)) fechar(); });
+
+    campo.addEventListener('input', () => {
+      campo.value = campo.dataset.ddi === '55' ? MASCARAS.foneBR(campo.value) : MASCARAS.foneIntl(campo.value);
+      validarCampo(campo);
+    });
+
+    escolher(PAISES[0], false);
+  }
+
+  function montarData(box) {
+    const id = box.dataset.data;
+    box.innerHTML = `
+      <label class="rotulo" for="${id}">${box.dataset.rotulo}${obrig}</label>
+      <div class="data">
+        <input type="text" id="${id}" name="${id}" data-mascara="data" data-valida="data" inputmode="numeric" required placeholder="dd/mm/aaaa">
+        <button type="button" class="cal-btn" id="${id}-btn" aria-label="Abrir calendário">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </button>
+        <input type="date" id="${id}-cal" tabindex="-1" aria-hidden="true">
+      </div>
+      <span class="erro-campo" id="erro-${id}"></span>`;
+
+    const txt = $(id), cal = $(id + '-cal');
+    $(id + '-btn').addEventListener('click', () => {
+      const dt = dataBR(txt.value);
+      if (dt) cal.value = dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+      try { cal.showPicker(); } catch (e) { cal.focus(); cal.click(); }
+    });
+    cal.addEventListener('change', () => {
+      const m = cal.value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (!m) return;
+      txt.value = m[3] + '/' + m[2] + '/' + m[1];
+      revalidarDatas();
+    });
+    txt.addEventListener('input', revalidarDatas);
+  }
+  function revalidarDatas() { ['repVigenciaDe', 'repVigenciaAte'].forEach(i => $(i) && validarCampo($(i))); }
+
+  function montarDocumentos() {
+    $('listaDocs').innerHTML = DOCUMENTOS.map(([id, nome], i) => `
+      <div class="c6 anexo">
+        <label class="rotulo" for="${id}"><span class="num">${i + 1}.</span><span>${nome}${obrig}</span></label>
+        <input type="file" id="${id}" name="${id}" required accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+        <span class="erro-campo" id="erro-${id}"></span>
+      </div>`).join('');
+    form.querySelectorAll('input[type="file"]').forEach(i => i.addEventListener('change', () => validarArquivo(i)));
+  }
+
+  function validarArquivo(el) {
+    const f = el.files[0];
+    const msg = (f && f.size > MAX_MB * 1024 * 1024) ? 'O arquivo passa de ' + MAX_MB + ' MB. Envie uma versão menor.' : '';
+    el.setCustomValidity(msg);
+    $('erro-' + el.id).textContent = msg;
+  }
+
+  /* =========================================================
+   * Coleta e envio
+   * ========================================================= */
+  function coletar() {
+    const dados = {};
+    Array.from(form.elements).forEach(el => {
+      if (!el.name || el.type === 'file' || el.type === 'button') return;
+      dados[el.name] = el.value.trim();
+    });
+    form.querySelectorAll('[data-valida="telefone"]').forEach(el => {
+      dados[el.name] = '+' + el.dataset.ddi + ' ' + el.value.trim();
+    });
+    return dados;
+  }
+
+  function lerArquivo(file) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(String(r.result).split(',')[1]);
+      r.onerror = () => reject(new Error('Não foi possível ler o arquivo ' + file.name));
+      r.readAsDataURL(file);
+    });
+  }
+
+  async function lerAnexos() {
+    const anexos = [];
+    for (const [id] of DOCUMENTOS) {
+      const f = $(id).files[0];
+      anexos.push({ campo: id, nome: f.name, mimeType: f.type || 'application/octet-stream', base64: await lerArquivo(f) });
+    }
+    return anexos;
+  }
+
+  function status(msg, erro) {
+    const s = $('status');
+    s.textContent = msg;
+    s.classList.toggle('erro', !!erro);
+  }
+
+  function mostrarObrigado() {
+    form.classList.add('oculto');
+    $('obrigado').classList.remove('oculto');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function falha(err) {
+    $('btnEnviar').disabled = false;
+    status((err && err.message) ? err.message : 'Não foi possível enviar. Tente novamente.', true);
+  }
+
+  /* =========================================================
+   * Inicialização
+   * ========================================================= */
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-endereco]').forEach(montarEndereco);
+    document.querySelectorAll('[data-telefone]').forEach(montarTelefone);
+    document.querySelectorAll('[data-data]').forEach(montarData);
+    montarDocumentos();
+
+    // Mensagens de erro abaixo dos campos fixos
+    form.querySelectorAll('[data-valida]').forEach(el => {
+      if (!$('erro-' + el.id)) el.insertAdjacentHTML('afterend', `<span class="erro-campo" id="erro-${el.id}"></span>`);
+    });
+
+    form.querySelectorAll('[data-mascara]').forEach(el => el.addEventListener('input', () => {
+      el.value = MASCARAS[el.dataset.mascara](el.value);
+      validarCampo(el);
+    }));
+    form.querySelectorAll('[data-valida="email"]').forEach(el => {
+      el.addEventListener('input', () => validarCampo(el));
+      el.addEventListener('blur', () => { el.value = el.value.trim(); validarCampo(el); });
+    });
+
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      form.classList.add('validado');
+      form.querySelectorAll('[data-valida]').forEach(validarCampo);
+      form.querySelectorAll('input[type="file"]').forEach(validarArquivo);
+
+      if (!form.checkValidity()) {
+        status('Confira os campos destacados.', true);
+        const primeiro = form.querySelector(':invalid');
+        if (primeiro) { primeiro.scrollIntoView({ behavior: 'smooth', block: 'center' }); primeiro.focus({ preventScroll: true }); }
+        return;
+      }
+
+      const total = DOCUMENTOS.reduce((s, [id]) => s + $(id).files[0].size, 0);
+      if (total > MAX_TOTAL_MB * 1024 * 1024) {
+        status('Os documentos somam mais de ' + MAX_TOTAL_MB + ' MB. Envie versões menores (ex.: PDF compactado).', true);
+        return;
+      }
+
+      const btn = $('btnEnviar');
+      btn.disabled = true;
+      status('Enviando os dados e documentos... isso pode levar alguns segundos.');
+
+      try {
+        const dados = coletar();
+        dados.anexos = await lerAnexos();
+
+        if (!/^https:\/\/script\.google\.com\//.test(URL_SCRIPT)) {
+          // Modo de pré-visualização: link da Web App ainda não configurado
+          setTimeout(mostrarObrigado, 600);
+          return;
+        }
+
+        const resp = await fetch(URL_SCRIPT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // evita bloqueio de CORS do Apps Script
+          body: JSON.stringify(dados)
+        });
+        const r = await resp.json();
+        if (!r.ok) throw new Error(r.erro || 'Não foi possível enviar.');
+        mostrarObrigado();
+      } catch (err) {
+        falha(err);
+      }
+    });
+  });
+</script>
+</body>
+</html>
